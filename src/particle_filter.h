@@ -12,7 +12,6 @@
 #include "helper_functions.h"
 
 struct Particle {
-
 	int id;
 	double x;
 	double y;
@@ -20,21 +19,24 @@ struct Particle {
 	double weight;
 };
 
-
-
 class ParticleFilter {
 	
 	// Number of particles to draw
-	int num_particles; 
-	
-	
+	int num_particles_; 
 	
 	// Flag, if filter is initialized
-	bool is_initialized;
+	bool is_initialized_;
 	
 	// Vector of weights of all particles
-	std::vector<double> weights;
+	std::vector<double> weights_;
+
+	std::default_random_engine generator_;
 	
+	// transform observation to observation as seen through particle
+	LandmarkObs getTransformedObservation(LandmarkObs observation, Particle particle);
+
+	Map::single_landmark_s getNearestLandmark(LandmarkObs observation, Map map_landmarks, double sensor_range);
+
 public:
 	
 	// Set of current particles
@@ -42,7 +44,7 @@ public:
 
 	// Constructor
 	// @param M Number of particles
-	ParticleFilter() : num_particles(0), is_initialized(false) {}
+	ParticleFilter() : num_particles_(0), is_initialized_(false) {}
 
 	// Destructor
 	~ParticleFilter() {}
@@ -68,14 +70,6 @@ public:
 	 * @param yaw_rate Yaw rate of car from t to t+1 [rad/s]
 	 */
 	void prediction(double delta_t, double std_pos[], double velocity, double yaw_rate);
-	
-	/**
-	 * dataAssociation Finds which observations correspond to which landmarks (likely by using
-	 *   a nearest-neighbors data association).
-	 * @param predicted Vector of predicted landmark observations
-	 * @param observations Vector of landmark observations
-	 */
-	void dataAssociation(std::vector<LandmarkObs> predicted, std::vector<LandmarkObs>& observations);
 	
 	/**
 	 * updateWeights Updates the weights for each particle based on the likelihood of the 
@@ -105,7 +99,7 @@ public:
 	 * initialized Returns whether particle filter is initialized yet or not.
 	 */
 	const bool initialized() const {
-		return is_initialized;
+		return is_initialized_;
 	}
 };
 
